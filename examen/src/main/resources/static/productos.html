@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Productos</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+      h1 { margin: 0 0 16px; font-size: 22px; }
+      .toolbar { display:flex; gap:8px; align-items:center; margin-bottom: 12px; }
+      .grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+      .card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; background: #fff; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border-bottom: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; font-size: 14px; }
+      thead th { background: #f9fafb; position: sticky; top: 0; }
+      button { appearance: none; padding: 8px 12px; border: 1px solid #2563eb; background: #2563eb; color: #fff; border-radius: 6px; font-weight: 600; cursor: pointer; }
+      .muted { color: #64748b; font-size: 12px; }
+      .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#1e40af; font-weight:600; font-size:12px; }
+      a.nav { color:#2563eb; text-decoration:none; margin-right:12px; }
+      a.nav:hover { text-decoration:underline; }
+    </style>
+  </head>
+  <body>
+    <h1>Inventario - Productos</h1>
+    <div class="toolbar">
+      <a class="nav" href="/proveedores.html">Proveedores</a>
+      <span class="muted">|</span>
+      <a class="nav" href="#" id="btn-recargar">Recargar</a>
+      <span id="resumen" class="muted"></span>
+    </div>
+
+    <section class="card">
+      <div id="list-status" class="muted" style="margin-bottom:8px;">Cargando productos…</div>
+      <div style="overflow:auto; max-height: 70vh; border: 1px solid #e5e7eb; border-radius: 6px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>SKU</th>
+              <th>Stock</th>
+              <th>Proveedor</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-productos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <script>
+      // Al servir desde Spring Boot, usamos el mismo origen
+      const API_BASE = '';
+      const $ = (sel) => document.querySelector(sel);
+      const tbody = $('#tbody-productos');
+      const listStatus = $('#list-status');
+      const resumen = $('#resumen');
+      const btnRecargar = $('#btn-recargar');
+
+      const nf = new Intl.NumberFormat('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+      async function api(path, options = {}) {
+        const res = await fetch(API_BASE + path, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options,
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || ('HTTP ' + res.status));
+        }
+        return res.json();
+      }
+
+      function row(p) {
+        const tr = document.createElement('tr');
+        const tdNombre = document.createElement('td');
+        const tdSku = document.createElement('td');
+        const tdStock = document.createElement('td');
+        const tdProv = document.createElement('td');
+        tdNombre.textContent = p?.nombre ?? '';
+        tdSku.textContent = p?.sku ?? '';
+        const stockNum = typeof p?.stockActual === 'number' ? p.stockActual : parseFloat(p?.stockActual ?? '0');
+        tdStock.innerHTML = `<span class="badge">${isFinite(stockNum) ? nf.format(stockNum) : ''}</span>`;
+        tdProv.textContent = p?.proveedor?.nombre ?? '';
+        tr.append(tdNombre, tdSku, tdStock, tdProv);
+        return tr;
+      }
+
+      async function loadProductos() {
+        listStatus.textContent = 'Cargando productos…';
+        tbody.innerHTML = '';
+        resumen.textContent = '';
+        try {
+          const data = await api('/api/productos');
+          if (!Array.isArray(data)) throw new Error('Respuesta inesperada');
+          let total = 0;
+          data.forEach((p) => {
+            const stockNum = typeof p?.stockActual === 'number' ? p.stockActual : parseFloat(p?.stockActual ?? '0');
+            if (isFinite(stockNum)) total += stockNum;
+            tbody.appendChild(row(p));
+          });
+          listStatus.textContent = data.length ? `${data.length} producto(s)` : 'Sin datos';
+          resumen.textContent = data.length ? `— Stock total: ${nf.format(total)}` : '';
+        } catch (err) {
+          console.error(err);
+          listStatus.textContent = 'Error al cargar productos';
+        }
+      }
+
+      btnRecargar.addEventListener('click', (e) => { e.preventDefault(); loadProductos(); });
+
+      // Inicializa
+      loadProductos();
+    </script>
+  </body>
+  </html>
+
