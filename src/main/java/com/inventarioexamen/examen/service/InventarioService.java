@@ -53,6 +53,12 @@ public class InventarioService {
         return toDTO(savedMovimiento);
     }
 
+    public List<MovimientoInventarioDTO> getAllMovimientos() {
+        return movimientoInventarioRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public List<MovimientoInventarioDTO> getMovimientosByProductoId(Long productoId) {
         return movimientoInventarioRepository.findByProductoProductoId(productoId).stream()
                 .map(this::toDTO)
