@@ -4,48 +4,36 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Productos</title>
-    <style>
-      :root { color-scheme: light dark; }
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-      h1 { margin: 0 0 16px; font-size: 22px; }
-      .toolbar { display:flex; gap:8px; align-items:center; margin-bottom: 12px; }
-      .grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
-      .card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; background: #fff; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border-bottom: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; font-size: 14px; }
-      thead th { background: #f9fafb; position: sticky; top: 0; }
-      button { appearance: none; padding: 8px 12px; border: 1px solid #2563eb; background: #2563eb; color: #fff; border-radius: 6px; font-weight: 600; cursor: pointer; }
-      .muted { color: #64748b; font-size: 12px; }
-      .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#1e40af; font-weight:600; font-size:12px; }
-      a.nav { color:#2563eb; text-decoration:none; margin-right:12px; }
-      a.nav:hover { text-decoration:underline; }
-    </style>
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <h1>Inventario - Productos</h1>
-    <div class="toolbar">
-      <a class="nav" href="/proveedores.html">Proveedores</a>
-      <span class="muted">|</span>
-      <a class="nav" href="#" id="btn-recargar">Recargar</a>
-      <span id="resumen" class="muted"></span>
-    </div>
-
-    <section class="card">
-      <div id="list-status" class="muted" style="margin-bottom:8px;">Cargando productos…</div>
-      <div style="overflow:auto; max-height: 70vh; border: 1px solid #e5e7eb; border-radius: 6px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>SKU</th>
-              <th>Stock</th>
-              <th>Proveedor</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-productos"></tbody>
-        </table>
+    <script src="/nav.js"></script>
+    <main class="container">
+      <h1 style="margin:16px 0 12px;">Productos</h1>
+      <div class="toolbar">
+        <a class="btn" href="#" id="btn-recargar">Recargar</a>
+        <span id="resumen" class="muted"></span>
       </div>
-    </section>
+
+      <section class="card">
+        <div class="card-body">
+          <div id="list-status" class="muted" style="margin-bottom:8px;">Cargando productos…</div>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>SKU</th>
+                  <th>Stock</th>
+                  <th>Proveedor</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-productos"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <script>
       // Al servir desde Spring Boot, usamos el mismo origen
@@ -113,4 +101,3 @@
     </script>
   </body>
   </html>
-

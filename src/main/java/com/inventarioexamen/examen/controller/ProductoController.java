@@ -1,6 +1,8 @@
 package com.inventarioexamen.examen.controller;
 
-import com.inventarioexamen.examen.entity.Producto;
+import com.inventarioexamen.examen.dto.MovimientoInventarioDTO;
+import com.inventarioexamen.examen.dto.ProductoDTO;
+import com.inventarioexamen.examen.service.InventarioService;
 import com.inventarioexamen.examen.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,41 +18,45 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
+    @Autowired
+    private InventarioService inventarioService;
+
     @GetMapping
-    public List<Producto> getAllProductos() {
-        return productoService.getAllProductos();
+    public List<ProductoDTO> getAllProductos(@RequestParam(name = "enStock", required = false) Boolean enStock) {
+        return productoService.getAllProductos(enStock);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> getProductoById(@PathVariable Long id) {
-        Optional<Producto> producto = productoService.getProductoById(id);
+    public ResponseEntity<ProductoDTO> getProductoById(@PathVariable Long id) {
+        Optional<ProductoDTO> producto = productoService.getProductoById(id);
         return producto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/movimientos")
+    public List<MovimientoInventarioDTO> getHistorialMovimientos(@PathVariable Long id) {
+        return inventarioService.getMovimientosByProductoId(id);
+    }
+
     @GetMapping("/sku/{sku}")
-    public ResponseEntity<Producto> getProductoBySku(@PathVariable String sku) {
-        Optional<Producto> producto = productoService.getProductoBySku(sku);
+    public ResponseEntity<ProductoDTO> getProductoBySku(@PathVariable String sku) {
+        Optional<ProductoDTO> producto = productoService.getProductoBySku(sku);
         return producto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Producto createProducto(@RequestBody Producto producto) {
-        return productoService.saveProducto(producto);
+    public ProductoDTO createProducto(@RequestBody ProductoDTO productoDTO) {
+        return productoService.saveProducto(productoDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> updateProducto(@PathVariable Long id, @RequestBody Producto productoDetails) {
-        Optional<Producto> productoOptional = productoService.getProductoById(id);
-        if (productoOptional.isPresent()) {
-            Producto producto = productoOptional.get();
-            producto.setNombre(productoDetails.getNombre());
-            producto.setSku(productoDetails.getSku());
-            producto.setProveedor(productoDetails.getProveedor());
-            producto.setStockActual(productoDetails.getStockActual());
-            return ResponseEntity.ok(productoService.saveProducto(producto));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ProductoDTO> updateProducto(@PathVariable Long id, @RequestBody ProductoDTO productoDetails) {
+        return productoService.getProductoById(id)
+                .map(existingProduct -> {
+                    productoDetails.setProductoId(id);
+                    ProductoDTO updatedProducto = productoService.saveProducto(productoDetails);
+                    return ResponseEntity.ok(updatedProducto);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

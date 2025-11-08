@@ -4,71 +4,60 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Proveedores</title>
-    <style>
-      :root { color-scheme: light dark; }
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-      h1 { margin: 0 0 16px; font-size: 22px; }
-      .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start; }
-      .card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; background: #fff; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border-bottom: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; font-size: 14px; }
-      thead th { background: #f9fafb; position: sticky; top: 0; }
-      form { display: grid; gap: 12px; }
-      label { display: grid; gap: 6px; font-size: 13px; }
-      input[type="text"] { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-      button { appearance: none; padding: 10px 14px; border: 1px solid #2563eb; background: #2563eb; color: #fff; border-radius: 6px; font-weight: 600; cursor: pointer; }
-      button[disabled] { opacity: .6; cursor: not-allowed; }
-      .muted { color: #64748b; font-size: 12px; }
-      .error { color: #b91c1c; font-size: 13px; }
-      .success { color: #166534; font-size: 13px; }
-      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <h1>Gestión de Proveedores</h1>
+    <script src="/nav.js"></script>
+    <main class="container">
+      <h1 style="margin:16px 0 12px;">Proveedores</h1>
 
-    <div class="grid">
-      <section class="card">
-        <h2 style="margin-top:0">Listado</h2>
-        <div id="list-status" class="muted">Cargando proveedores…</div>
-        <div style="overflow:auto; max-height: 60vh; border: 1px solid #e5e7eb; border-radius: 6px;">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:80px">ID</th>
-                <th>Nombre</th>
-                <th>País de origen</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-proveedores"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2 style="margin-top:0">Agregar proveedor</h2>
-        <form id="form-proveedor" novalidate>
-          <label>
-            Nombre
-            <input id="nombre" name="nombre" type="text" placeholder="Tech Solutions Inc." required />
-          </label>
-          <label>
-            País de origen
-            <input id="paisOrigen" name="paisOrigen" type="text" placeholder="EE. UU." required />
-          </label>
-          <div class="muted">Los campos marcados son obligatorios.</div>
-          <div id="form-msg" class="muted"></div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <button id="btn-submit" type="submit">Guardar</button>
-            <button id="btn-reset" type="button" style="background:#6b7280; border-color:#6b7280;">Limpiar</button>
+      <div class="grid cols-2">
+        <section class="card">
+          <div class="card-body">
+            <h2 style="margin-top:0">Listado</h2>
+            <div id="list-status" class="muted">Cargando proveedores…</div>
+            <div class="scroll" style="max-height:60vh;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:80px">ID</th>
+                    <th>Nombre</th>
+                    <th>País de origen</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-proveedores"></tbody>
+              </table>
+            </div>
           </div>
-        </form>
-      </section>
-    </div>
+        </section>
+
+        <section class="card">
+          <div class="card-body">
+            <h2 style="margin-top:0">Agregar proveedor</h2>
+            <form id="form-proveedor" novalidate>
+              <label>
+                Nombre
+                <input id="nombre" name="nombre" type="text" placeholder="Tech Solutions Inc." required />
+              </label>
+              <label>
+                País de origen
+                <input id="paisOrigen" name="paisOrigen" type="text" placeholder="EE. UU." required />
+              </label>
+              <div class="muted">Los campos marcados son obligatorios.</div>
+              <div id="form-msg" class="muted"></div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button id="btn-submit" type="submit">Guardar</button>
+                <button id="btn-reset" type="button" class="secondary">Limpiar</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
 
     <script>
       // Configura aquí tu URL base del backend
-      const API_BASE = 'http://localhost:8080';
+      const API_BASE = '';
 
       const $ = (sel) => document.querySelector(sel);
       const tbody = $('#tbody-proveedores');
@@ -157,4 +146,3 @@
     </script>
   </body>
   </html>
-

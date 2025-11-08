@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inicio — Inventario</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <script src="/nav.js"></script>
+    <main class="container">
+      <h1 style="margin:16px 0 12px;">Panel de Inventario</h1>
+      <p class="muted" id="status">Cargando resumen…</p>
+
+      <section class="cards" id="cards">
+        <a class="card stat" href="/productos.html">
+          <div class="muted">Productos</div>
+          <div class="value" id="stat-productos">—</div>
+        </a>
+        <a class="card stat" href="/proveedores.html">
+          <div class="muted">Proveedores</div>
+          <div class="value" id="stat-proveedores">—</div>
+        </a>
+        <a class="card stat" href="/bodega.html">
+          <div class="muted">Stock total</div>
+          <div class="value" id="stat-stock">—</div>
+        </a>
+        <a class="card stat" href="/movimientos.html">
+          <div class="muted">Movimientos</div>
+          <div class="value" id="stat-movs">—</div>
+        </a>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <div class="card-body">
+          <h2>Acciones rápidas</h2>
+          <div class="toolbar" style="margin-top:8px;">
+            <a class="btn" href="/proveedores.html">Gestionar proveedores</a>
+            <a class="btn" href="/productos.html">Ver productos</a>
+            <a class="btn" href="/bodega.html">Ver stock en bodega</a>
+            <a class="btn" href="/movimientos.html">Historial de movimientos</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const nf = new Intl.NumberFormat('es-GT', { maximumFractionDigits: 2 });
+      async function api(path){
+        const res = await fetch(path);
+        if(!res.ok) throw new Error(await res.text());
+        return res.json();
+      }
+      async function load(){
+        const status = document.getElementById('status');
+        try {
+          const [prods, provs] = await Promise.all([
+            api('/api/productos').catch(()=>[]),
+            api('/api/proveedores').catch(()=>[])
+          ]);
+          document.getElementById('stat-productos').textContent = Array.isArray(prods)? prods.length : 0;
+          document.getElementById('stat-proveedores').textContent = Array.isArray(provs)? provs.length : 0;
+          const total = (Array.isArray(prods)? prods : []).reduce((s,p)=>{
+            const v = typeof p.stockActual==='number'? p.stockActual : parseFloat(p.stockActual||'0');
+            return s + (isFinite(v)? v:0);
+          }, 0);
+          document.getElementById('stat-stock').textContent = nf.format(total);
+          status.textContent = 'Listo';
+        } catch (e) {
+          status.textContent = 'No se pudo cargar el resumen';
+        }
+      }
+      load();
+    </script>
+  </body>
+  </html>
+

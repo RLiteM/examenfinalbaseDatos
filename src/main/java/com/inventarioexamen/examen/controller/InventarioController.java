@@ -1,6 +1,6 @@
 package com.inventarioexamen.examen.controller;
 
-import com.inventarioexamen.examen.entity.MovimientoInventario;
+import com.inventarioexamen.examen.dto.MovimientoInventarioDTO;
 import com.inventarioexamen.examen.service.InventarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,9 +18,9 @@ public class InventarioController {
     private InventarioService inventarioService;
 
     @PostMapping("/movimientos")
-    public ResponseEntity<?> registrarMovimiento(@RequestBody MovimientoInventario movimiento) {
+    public ResponseEntity<?> registrarMovimiento(@RequestBody MovimientoInventarioDTO movimientoDTO) {
         try {
-            MovimientoInventario nuevoMovimiento = inventarioService.registrarMovimiento(movimiento);
+            MovimientoInventarioDTO nuevoMovimiento = inventarioService.registrarMovimiento(movimientoDTO);
             return new ResponseEntity<>(nuevoMovimiento, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

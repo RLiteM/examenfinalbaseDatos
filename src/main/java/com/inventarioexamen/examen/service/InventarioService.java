@@ -1,5 +1,6 @@
 package com.inventarioexamen.examen.service;
 
+import com.inventarioexamen.examen.dto.MovimientoInventarioDTO;
 import com.inventarioexamen.examen.entity.MovimientoInventario;
 import com.inventarioexamen.examen.entity.Producto;
 import com.inventarioexamen.examen.repository.MovimientoInventarioRepository;
@@ -20,12 +21,12 @@ public class InventarioService {
     private ProductoRepository productoRepository;
 
     @Transactional
-    public MovimientoInventario registrarMovimiento(MovimientoInventario movimiento) {
-        Producto producto = productoRepository.findById(movimiento.getProducto().getProductoId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + movimiento.getProducto().getProductoId()));
+    public MovimientoInventarioDTO registrarMovimiento(MovimientoInventarioDTO movimientoDTO) {
+        Producto producto = productoRepository.findById(movimientoDTO.getProductoId())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + movimientoDTO.getProductoId()));
 
-        BigDecimal cantidad = movimiento.getCantidad();
-        char tipo = movimiento.getTipo();
+        BigDecimal cantidad = movimientoDTO.getCantidad();
+        char tipo = movimientoDTO.getTipo();
 
         if (tipo == 'E') {
             producto.setStockActual(producto.getStockActual().add(cantidad));
@@ -39,6 +40,32 @@ public class InventarioService {
         }
 
         productoRepository.save(producto);
-        return movimientoInventarioRepository.save(movimiento);
+
+        MovimientoInventario movimiento = new MovimientoInventario();
+        movimiento.setProducto(producto);
+        movimiento.setTipo(tipo);
+        movimiento.setCantidad(cantidad);
+        movimiento.setReferencia(movimientoDTO.getReferencia());
+
+        MovimientoInventario savedMovimiento = movimientoInventarioRepository.save(movimiento);
+        return toDTO(savedMovimiento);
+    }
+
+    public List<MovimientoInventarioDTO> getMovimientosByProductoId(Long productoId) {
+        return movimientoInventarioRepository.findByProductoProductoId(productoId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    private MovimientoInventarioDTO toDTO(MovimientoInventario movimiento) {
+        MovimientoInventarioDTO dto = new MovimientoInventarioDTO();
+        dto.setMovimientoId(movimiento.getMovimientoId());
+        dto.setProductoId(movimiento.getProducto().getProductoId());
+        dto.setNombreProducto(movimiento.getProducto().getNombre());
+        dto.setTipo(movimiento.getTipo());
+        dto.setCantidad(movimiento.getCantidad());
+        dto.setFecha(movimiento.getFecha());
+        dto.setReferencia(movimiento.getReferencia());
+        return dto;
     }
 }

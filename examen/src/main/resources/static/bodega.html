@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bodega — Stock disponible</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <script src="/nav.js"></script>
+    <main class="container">
+      <h1 style="margin:16px 0 12px;">Stock en Bodega</h1>
+      <div class="toolbar">
+        <a class="btn" id="recargar" href="#">Recargar</a>
+        <span id="resumen" class="muted"></span>
+      </div>
+      <section class="card">
+        <div class="card-body">
+          <div id="list-status" class="muted" style="margin-bottom:8px;">Cargando…</div>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>SKU</th>
+                  <th>Stock</th>
+                  <th>Proveedor</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const nf = new Intl.NumberFormat('es-GT', { maximumFractionDigits: 2 });
+      const $ = (s)=>document.querySelector(s);
+      const tbody = $('#tbody');
+      const statusEl = $('#list-status');
+      const resumen = $('#resumen');
+      const btn = $('#recargar');
+
+      async function api(path){ const r = await fetch(path); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+      function row(p){
+        const tr = document.createElement('tr');
+        const tdN = document.createElement('td');
+        const tdS = document.createElement('td');
+        const tdQ = document.createElement('td');
+        const tdP = document.createElement('td');
+        tdN.textContent = p.nombre || '';
+        tdS.textContent = p.sku || '';
+        const q = typeof p.stockActual==='number'? p.stockActual : parseFloat(p.stockActual||'0');
+        tdQ.innerHTML = `<span class="badge">${isFinite(q)? nf.format(q): ''}</span>`;
+        tdP.textContent = p?.proveedor?.nombre || '';
+        tr.append(tdN, tdS, tdQ, tdP);
+        return tr;
+      }
+      async function load(){
+        statusEl.textContent = 'Cargando…'; tbody.innerHTML=''; resumen.textContent='';
+        try{
+          const data = await api('/api/productos');
+          const activos = (Array.isArray(data)? data: []).filter(p=>{
+            const q = typeof p.stockActual==='number'? p.stockActual : parseFloat(p.stockActual||'0');
+            return isFinite(q) && q>0;
+          });
+          let total=0; activos.forEach(p=>{ const q = typeof p.stockActual==='number'? p.stockActual : parseFloat(p.stockActual||'0'); total += isFinite(q)? q:0; tbody.append(row(p)); });
+          statusEl.textContent = activos.length? `${activos.length} producto(s) con stock` : 'Sin stock';
+          resumen.textContent = activos.length? `— Stock total: ${nf.format(total)}`: '';
+        }catch(e){ statusEl.textContent = 'Error al cargar'; }
+      }
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); load(); });
+      load();
+    </script>
+  </body>
+  </html>
+

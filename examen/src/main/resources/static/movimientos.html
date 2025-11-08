@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Historial de Movimientos</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <script src="/nav.js"></script>
+    <main class="container">
+      <h1 style="margin:16px 0 12px;">Historial de Movimientos</h1>
+      <div class="toolbar">
+        <a class="btn" href="#" id="recargar">Recargar</a>
+        <span id="resumen" class="muted"></span>
+      </div>
+      <section class="card">
+        <div class="card-body">
+          <div id="estado" class="muted" style="margin-bottom:8px;">Cargando…</div>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Producto</th>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                  <th>Referencia</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <p class="muted">Si no ves datos, confirma que exista un endpoint GET en <code>/api/inventario/movimientos</code>.</p>
+    </main>
+
+    <script>
+      const nf = new Intl.NumberFormat('es-GT', { maximumFractionDigits: 2 });
+      const fmtDate = (s)=>{
+        if(!s) return '';
+        try { const d = new Date(s); return d.toLocaleString(); } catch { return s; }
+      };
+      const $ = (s)=>document.querySelector(s);
+      const tbody = $('#tbody');
+      const estado = $('#estado');
+      const resumen = $('#resumen');
+      const btn = $('#recargar');
+
+      async function api(path){ const r = await fetch(path); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+      function row(m){
+        const tr = document.createElement('tr');
+        const tdF = document.createElement('td');
+        const tdP = document.createElement('td');
+        const tdT = document.createElement('td');
+        const tdC = document.createElement('td');
+        const tdR = document.createElement('td');
+        tdF.textContent = fmtDate(m.fecha || m.createdAt || m.timestamp);
+        tdP.textContent = m?.producto?.nombre || m?.producto?.productoId || '';
+        tdT.innerHTML = `<span class="pill">${m.tipo || ''}</span>`;
+        const q = typeof m.cantidad==='number'? m.cantidad : parseFloat(m.cantidad||'0');
+        tdC.textContent = nf.format(isFinite(q)? q: 0);
+        tdR.textContent = m.referencia || '';
+        tr.append(tdF, tdP, tdT, tdC, tdR);
+        return tr;
+      }
+      async function load(){
+        estado.textContent = 'Cargando…'; tbody.innerHTML=''; resumen.textContent='';
+        try{
+          const data = await api('/api/inventario/movimientos');
+          if(!Array.isArray(data)) throw new Error('Respuesta inesperada');
+          let entradas=0, salidas=0;
+          data.forEach(m=>{ const q = typeof m.cantidad==='number'? m.cantidad : parseFloat(m.cantidad||'0'); if((m.tipo||'').toUpperCase()==='E') entradas += isFinite(q)? q:0; else if((m.tipo||'').toUpperCase()==='S') salidas += isFinite(q)? q:0; tbody.append(row(m)); });
+          estado.textContent = data.length? `${data.length} movimiento(s)`:'Sin datos';
+          resumen.textContent = data.length? `— Entradas: ${nf.format(entradas)} · Salidas: ${nf.format(salidas)}`:'';
+        }catch(e){ estado.textContent = 'Endpoint no disponible o error al cargar'; }
+      }
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); load(); });
+      load();
+    </script>
+  </body>
+  </html>
+
