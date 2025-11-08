@@ -1,3 +1,7 @@
+Link parte visual 
+https://github.com/RLiteM/pages
+
+
 # Proyecto de Sistema de Inventario
 
 Este es un proyecto de API REST para un sistema de inventario simple, desarrollado con Spring Boot.
